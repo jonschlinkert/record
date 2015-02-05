@@ -92,11 +92,7 @@ Record.prototype.clone = function (opt) {
  * Call `toString()` on `record.contents`.
  */
 Record.prototype.toString = function (enc) {
-  enc = enc || this.encoding;
-  if (!this.isBuffer()) {
-    throw new Error('Record#toString() is only valid when `contents` is a Buffer.');
-  }
-  return this.contents.toString(enc);
+  return utils.toString(this.contents, enc);
 };
 
 /**
