@@ -1,37 +1,41 @@
-# record [![Build Status](https://secure.travis-ci.org/node-task/record.png)](http://travis-ci.org/node-task/record)
+# record [![NPM version](https://badge.fury.io/js/record.svg)](http://badge.fury.io/js/record)
+
 > The canonical implementation of node-task's [Record specification](https://github.com/node-task/spec/wiki/Record)
 
 ## Usage
 
-```javascript
-var Record = require('record');
+```js
+var File = require('record');
 
-var file = new Record({
+var file = new File({
   path: 'path/to/file',
   encoding: 'utf8',
   contents: 'i will be turned into a buffer'
 });
 ```
 
-### constructor(options)
+### File
 
-#### options.path
+#### file.path
 
 Path to file.
 
-Type: `String`  
-Default: `null`  
+Type: `String`
+Default: `null`
 
-#### options.contents
+#### file.contents
 
 File contents.
 
-Type: `Buffer, Stream, or null`  
-Default: `null`  
+Type: `Buffer, Stream, or null`
+Default: `null`
 
-#### options.encoding
+#### file.encoding
 
-A default encoding to be used with toString().
+Default encoding to be used with `toString()`.
+
+
+## API
 
 ### type()
 
@@ -54,13 +58,17 @@ Return true if the record contents are a Stream.
 Return a clone of the record.
 
 ### toString()
-*For usage with Buffer backed records only.*  Calls toString() on the underlying buffer. If no encoding is provided, the Record's optional encoding property will be used. If neither is available, will default to utf8 encoding.
+
+_For usage with Buffer-backed records only._  Calls `toString()` on the underlying buffer.
+
+- If no encoding is provided, the Record's optional encoding property will be used.
+- If neither is available, will default to `utf8` encoding.
 
 ### pipe(stream[, opt])
 
 - If the record contents are a Buffer, it will be written to the provided stream.
 - If the record contents are a Stream, pipe them to the provided stream.
 - If the record contents are null, this will do nothing.
-- If opt.end is true, [the destination stream will not be ended](http://nodejs.org/api/stream.html#stream_readable_pipe_destination_options).
+- If `opt.end` is true, [the destination stream will not be ended](http://nodejs.org/api/stream.html#stream_readable_pipe_destination_options).
 
 Returns the provided stream.
