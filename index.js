@@ -24,6 +24,8 @@ function Record(record) {
   }
 }
 
+Record.prototype.builtins = ['path', 'encoding', '_contents'];
+
 /**
  * Return `true` if `record.contents` is a buffer
  */
@@ -65,13 +67,21 @@ Record.prototype.type = function () {
 /**
  * Clone a record
  */
-Record.prototype.clone = function () {
-  var contents = this.contents;
+Record.prototype.clone = function (opt) {
+  var contents;
   if (this.isBuffer()) {
-    contents = new Buffer(contents.length);
-    this.contents.copy(contents);
+    if(opt && opt.contents) {
+      contents = new Buffer(contents.length);
+      this.contents.copy(contents);
+    } else {
+      contents = this.contents;
+    }
+  } else if (this.isStream()) {
+    this.contents = utils.passThrough(this.contents);
+    contents = utils.passThrough(this.contents);
   }
-  return new this.constructor({
+
+  return new Record({
     path: this.path,
     encoding: this.encoding,
     contents: contents
