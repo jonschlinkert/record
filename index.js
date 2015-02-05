@@ -77,8 +77,8 @@ Record.prototype.clone = function (opt) {
       contents = this.contents;
     }
   } else if (this.isStream()) {
-    this.contents = utils.passThrough(this.contents);
-    contents = utils.passThrough(this.contents);
+    this.contents = this.contents.pipe(new Stream.PassThrough());
+    contents = this.contents.pipe(new Stream.PassThrough());
   }
 
   return new Record({
@@ -126,7 +126,7 @@ Object.defineProperty(Record.prototype, 'contents', {
   },
   set: function (val) {
     if (!utils.isValid(val)) {
-      throw new Error('Contents can only be a Buffer, a Stream, or null.');
+      throw new Error('Contents can only be a Buffer, Stream, or null.');
     }
     this._contents = val;
   }
