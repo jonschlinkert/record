@@ -1,105 +1,125 @@
-const Stream = require('stream');
-const test = require('tap').test;
-const Record = require('../');
+var Stream = require('stream');
+var Record = require('../');
+require('should');
+require('mocha');
 
-test('constructor', function (t) {
+describe('Record', function () {
+  describe('constructor', function () {
+    it('should create a buffer if contents is a string', function (done) {
+      var record = new Record({ contents: '64617461' });
+      Buffer.isBuffer(record.contents).should.be.true;
+      done();
+    });
 
-  test('will create a buffer if contents is a string', function (t) {
-    var record = new Record({ contents: '64617461' });
-    t.equal(Buffer.isBuffer(record.contents),true);
-    t.end();
+    it('should throw on invalid content type', function (done) {
+      (function () {
+        new Record({contents:true});
+      }).should.throw(new Error('Contents can only be a Buffer, Stream, or null.'));
+      done();
+    });
   });
 
-  test('will throw on invalid content type', function (t) {
-    t.throws(function () {
-      new Record({contents:true});
-    }, new Error('Contents can only be a Buffer, a Stream, or null.'));
-    t.end();
+  describe('.isNull()', function () {
+    it('should return true when the value is strictly `null`', function (done) {
+      var record = new Record();
+      record.isNull().should.be.true;
+      record.isBuffer().should.be.false;
+      record.isStream().should.be.false;
+      done();
+    });
   });
 
-  t.end();
-});
-
-test('instance', function (t) {
-
-  test('isNull()', function (t) {
-    var record = new Record();
-    t.equal(record.isNull(), true, 'can tell if is null backed');
-    t.equal(record.isBuffer(), false);
-    t.equal(record.isStream(), false);
-    t.end();
+  describe('.isBuffer()', function (done) {
+    it('should return true when the value is a Buffer', function (done) {
+      var record = new Record({contents: new Buffer(0)});
+      record.isBuffer().should.be.true;
+      record.isNull().should.be.false;
+      record.isStream().should.be.false;
+      done();
+    });
   });
 
-  test('isBuffer()', function (t) {
-    var record = new Record({contents: new Buffer(0)});
-    t.equal(record.isNull(), false);
-    t.equal(record.isBuffer(), true, 'can tell if is buffer backed');
-    t.equal(record.isStream(), false);
-    t.end();
+  describe('.isStream()', function (done) {
+    it('should return true when the value is a stream', function (done) {
+      var record = new Record({contents: new Stream.Readable()});
+      record.isStream().should.be.true;
+      record.isNull().should.be.false;
+      record.isBuffer().should.be.false;
+      done();
+    });
   });
 
-  test('isStream()', function (t) {
-    var record = new Record({contents: new Stream.Readable()});
-    t.equal(record.isStream(), true, 'can tell if it is stream backed');
-    t.end();
+  describe('.type()', function (done) {
+    it('should detect null types', function (done) {
+      new Record().type().should.equal('Null');
+      done();
+    });
+    it('should detect buffers', function (done) {
+      new Record({contents: new Buffer(0)}).type().should.equal('Buffer');
+      done();
+    });
+    it('should detect streams', function (done) {
+      new Record({contents: new Stream.Readable()}).type().should.equal('ReadableStream');
+      new Record({contents: new Stream.Writable()}).type().should.equal('WritableStream');
+      done();
+    });
   });
 
-  test('type()', function (t) {
-    t.equal(new Record().type(), 'Null', 'should detect null type');
-    t.equal(new Record({contents: new Buffer(0)}).type(), 'Buffer', 'should detect buffer type');
-    t.equal(new Record({contents: new Stream.Readable()}).type(), 'ReadableStream', 'should detect stream type');
-    t.equal(new Record({contents: new Stream.Writable()}).type(), 'WritableStream', 'should detect stream type');
-    t.end();
-  })
-
-  test('clone()', function (t) {
-    var buffer = new Buffer(0);
-    var record = new Record({contents: buffer});
-    var clone = record.clone();
-    t.notEqual(record.contents, buffer.contents, 'can clone itself');
-    t.end();
+  describe('.clone()', function (done) {
+    it('should clone a record when contents is a buffer', function (done) {
+      var a = new Record({contents: new Buffer('abc')});
+      var b = a.clone();
+      a.contents.should.equal(b.contents, 'can clone itself');
+      a.contents.should.be.an.instanceof.Buffer;
+      a.contents.toString().should.equal('abc');
+      done();
+    });
   });
 
-  test('pipe()', function (t) {
-
-    test('if content is buffer, writes buffer into provided stream', function (t) {
-      t.plan(2);
+  describe('.pipe()', function (done) {
+    it('should write buffer into provided stream when contents is a buffer', function (done) {
       var buffer = new Buffer('buffer');
       var record = new Record({contents:buffer});
       var stream = new Stream.PassThrough();
+
       stream.on('data', function (chunk) {
-        t.equal(chunk, buffer);
+        chunk.should.equal(buffer);
       });
-      var piped = record.pipe(stream);
-      t.equal(piped, stream, 'should return the stream');
-      t.end();
+
+      record.pipe(stream).should.equal(stream, 'should return the stream');
+      done();
     });
 
-    test('if content is stream, should connect to provided stream', function (t) {
-      t.plan(2);
+    it('should connect to provided stream if contents is a stream', function (done) {
       var buffer = new Buffer('buffer');
       var record = new Record({contents:new Stream.PassThrough()});
       var stream = new Stream.PassThrough();
+
       stream.on('data', function (chunk) {
-        t.equal(chunk, buffer);
-        t.end();
+        chunk.should.equal(buffer);
+        done();
       });
-      stream.on('end', function () { throw new Error(); });
-      t.equal(record.pipe(stream), stream, 'should return the stream');
+
+      stream.on('end', function () {
+        throw new Error();
+      });
+      record.pipe(stream).should.equal(stream, 'should return the stream');
       record.contents.write(buffer);
     });
 
-    test('if content is null, should do nothing', function (t) {
+    it('if content is null, should do nothing', function (done) {
       var record = new Record();
       var stream = new Stream.PassThrough();
-      var thrower = function () { throw new Error(); };
+      var thrower = function () {
+        throw new Error();
+      };
+
       stream.on('data', thrower);
-      stream.on('end', function () { t.end(); });
-      t.equal(record.pipe(stream), stream, 'should return the stream');
+      stream.on('end', function () {
+        done();
+      });
+
+      record.pipe(stream).should.equal(stream, 'should return the stream');
     });
-
-    t.end();
   });
-
-  t.end();
 });
