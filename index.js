@@ -8,7 +8,8 @@ var utils = require('./lib/utils');
  */
 
 function Record(file) {
-  if (!file) { file = {}; }
+  file = file || {};
+
   this.path = file.path || null;
   this.encoding = file.encoding || null;
   if (typeof file.contents === 'string') {
