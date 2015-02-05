@@ -8,45 +8,45 @@ module.exports = Record;
 
 /**
  * Record constructor. Create a new Record with
- * the given `file` properties.
+ * the given `record` properties.
  *
- * @param {Object} `file`
+ * @param {Object} `record`
  */
-function Record(file) {
-  file = file || {};
-  this.path = file.path || null;
-  this.encoding = file.encoding || null;
+function Record(record) {
+  record = record || {};
+  this.path = record.path || null;
+  this.encoding = record.encoding || null;
 
-  if (typeof file.contents === 'string') {
-    this.contents = new Buffer(file.contents, file.encoding);
+  if (typeof record.contents === 'string') {
+    this.contents = new Buffer(record.contents, record.encoding);
   } else {
-    this.contents = file.contents || null;
+    this.contents = record.contents || null;
   }
 }
 
 /**
- * Return `true` if `file.contents` is a buffer
+ * Return `true` if `record.contents` is a buffer
  */
 Record.prototype.isBuffer = function () {
   return utils.isBuffer(this.contents);
 };
 
 /**
- * Return `true` if `file.contents` is a stream
+ * Return `true` if `record.contents` is a stream
  */
 Record.prototype.isStream = function () {
   return utils.isStream(this.contents);
 };
 
 /**
- * Return `true` if `file.contents` is null, with strict equality
+ * Return `true` if `record.contents` is null, with strict equality
  */
 Record.prototype.isNull = function () {
   return utils.isNull(this.contents);
 };
 
 /**
- * Return the `type` of `file.contents`
+ * Return the `type` of `record.contents`
  */
 Record.prototype.type = function () {
   var type = 'Null';
@@ -79,7 +79,7 @@ Record.prototype.clone = function () {
 };
 
 /**
- * Call `toString()` on `file.contents`.
+ * Call `toString()` on `record.contents`.
  */
 Record.prototype.toString = function (enc) {
   enc = enc || this.encoding;
@@ -90,7 +90,7 @@ Record.prototype.toString = function (enc) {
 };
 
 /**
- * Pipe or write `file.contents` into the stream, or nothing if null.
+ * Pipe or write `record.contents` into the stream, or nothing if null.
  */
 Record.prototype.pipe = function (stream, opt) {
   opt = opt || {};

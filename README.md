@@ -5,32 +5,32 @@
 ## Usage
 
 ```js
-var File = require('record');
+var Record = require('record');
 
-var file = new File({
-  path: 'path/to/file',
+var record = new Record({
+  path: 'path/to/record',
   encoding: 'utf8',
   contents: 'i will be turned into a buffer'
 });
 ```
 
-### File
+### Record
 
-#### file.path
+#### record.path
 
-Path to file.
+Path to record.
 
 Type: `String`
 Default: `null`
 
-#### file.contents
+#### record.contents
 
-File contents.
+Record contents.
 
 Type: `Buffer, Stream, or null`
 Default: `null`
 
-#### file.encoding
+#### record.encoding
 
 Default encoding to be used with `toString()`.
 
@@ -59,9 +59,9 @@ Return a clone of the record.
 
 ### toString()
 
-Calls `toString()` on `file.contents`.
+Calls `toString()` on `record.contents`.
 
-- _`file.contents` must already be a buffer, or an error is thrown._
+- _`record.contents` must already be a buffer, or an error is thrown._
 - If no encoding is provided, the Record's optional encoding property will be used.
 - If neither is available, will default to `utf8` encoding.
 
