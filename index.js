@@ -1,17 +1,22 @@
 var utils = require('./lib/utils');
 
 /**
+ * Expose `Record`
+ */
+
+module.exports = Record;
+
+/**
  * Record constructor. Create a new Record with
  * the given `file` properties.
  *
  * @param {Object} `file`
  */
-
 function Record(file) {
   file = file || {};
-
   this.path = file.path || null;
   this.encoding = file.encoding || null;
+
   if (typeof file.contents === 'string') {
     this.contents = new Buffer(file.contents, file.encoding);
   } else {
@@ -19,18 +24,30 @@ function Record(file) {
   }
 }
 
+/**
+ * Return `true` if `file.contents` is a buffer
+ */
 Record.prototype.isBuffer = function () {
   return utils.isBuffer(this.contents);
 };
 
+/**
+ * Return `true` if `file.contents` is a stream
+ */
 Record.prototype.isStream = function () {
   return utils.isStream(this.contents);
 };
 
+/**
+ * Return `true` if `file.contents` is null, with strict equality
+ */
 Record.prototype.isNull = function () {
   return utils.isNull(this.contents);
 };
 
+/**
+ * Return the `type` of `file.contents`
+ */
 Record.prototype.type = function () {
   var type = 'Null';
   if (this.isBuffer()) {
@@ -45,6 +62,9 @@ Record.prototype.type = function () {
   return type;
 };
 
+/**
+ * Clone a record
+ */
 Record.prototype.clone = function () {
   var contents = this.contents;
   if (this.isBuffer()) {
@@ -58,24 +78,24 @@ Record.prototype.clone = function () {
   });
 };
 
-Record.prototype.toString = function (encoding) {
-  encoding = encoding || this.encoding;
+/**
+ * Call `toString()` on `file.contents`.
+ */
+Record.prototype.toString = function (enc) {
+  enc = enc || this.encoding;
   if (!this.isBuffer()) {
-    throw new Error('toString is only valid for Buffer backed Records.');
+    throw new Error('Record#toString() is only valid when `contents` is a Buffer.');
   }
-  return this.contents.toString(encoding);
+  return this.contents.toString(enc);
 };
 
+/**
+ * Pipe or write `file.contents` into the stream, or nothing if null.
+ */
 Record.prototype.pipe = function (stream, opt) {
-  if (!opt) {
-    opt = {};
-  }
-  if (typeof opt.end === 'undefined') {
-    opt.end = true;
-  }
-  if (this.isStream()) {
-    return this.contents.pipe(stream, opt);
-  }
+  opt = opt || {};
+  if (typeof opt.end === 'undefined') { opt.end = true; }
+  if (this.isStream()) { return this.contents.pipe(stream, opt); }
   if (this.isBuffer()) {
     if (opt.end) {
       stream.end(this.contents);
@@ -85,9 +105,7 @@ Record.prototype.pipe = function (stream, opt) {
     return stream;
   }
   if (this.isNull()) {
-    if (opt.end) {
-      stream.end();
-    }
+    if (opt.end) { stream.end(); }
     return stream;
   }
 };
@@ -107,5 +125,3 @@ Object.defineProperty(Record.prototype, 'contents', {
     this._contents = val;
   }
 });
-
-module.exports = Record;

@@ -59,8 +59,9 @@ Return a clone of the record.
 
 ### toString()
 
-_For usage with Buffer-backed records only._  Calls `toString()` on the underlying buffer.
+Calls `toString()` on `file.contents`.
 
+- _`file.contents` must already be a buffer, or an error is thrown._
 - If no encoding is provided, the Record's optional encoding property will be used.
 - If neither is available, will default to `utf8` encoding.
 
