@@ -48,6 +48,13 @@ Record.prototype.isNull = function () {
 };
 
 /**
+ * Return `true` if `record.contents` is null, with strict equality
+ */
+Record.prototype.isNull = function () {
+  return utils.isNull(this.contents);
+};
+
+/**
  * Return the `type` of `record.contents`
  */
 Record.prototype.type = function () {
