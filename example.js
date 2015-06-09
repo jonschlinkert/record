@@ -1,9 +1,9 @@
 var Record = require('./');
 
-var file = new Record({
+var record = new Record({
   path: 'a/b/c/foo.md',
   contents: 'This is contents'
 });
 
 
-console.log(file.builtins)
+console.log(record.contents.toString());

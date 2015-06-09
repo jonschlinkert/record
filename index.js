@@ -1,3 +1,6 @@
+'use strict';
+
+var Stream = require('stream');
 var utils = require('./lib/utils');
 
 /**
@@ -14,17 +17,17 @@ module.exports = Record;
  */
 function Record(record) {
   record = record || {};
-  this.path = record.path || null;
-  this.encoding = record.encoding || null;
-
   if (typeof record.contents === 'string') {
-    this.contents = new Buffer(record.contents, record.encoding);
+    this.contents = new Buffer(record.contents);
   } else {
     this.contents = record.contents || null;
   }
+  for (var key in record) {
+    if (key !== 'contents') {
+      this[key] = record[key];
+    }
+  }
 }
-
-Record.prototype.builtins = ['path', 'encoding', '_contents'];
 
 /**
  * Return `true` if `record.contents` is a buffer
@@ -48,13 +51,6 @@ Record.prototype.isNull = function () {
 };
 
 /**
- * Return `true` if `record.contents` is null, with strict equality
- */
-Record.prototype.isNull = function () {
-  return utils.isNull(this.contents);
-};
-
-/**
  * Return the `type` of `record.contents`
  */
 Record.prototype.type = function () {
@@ -64,9 +60,12 @@ Record.prototype.type = function () {
   }
   if (this.isStream()) {
     type = this.contents.constructor.name;
-    if (type.toLowerCase().search('stream') === -1) {
+    if (type.toLowerCase().indexOf('stream') === -1) {
       type += 'Stream';
     }
+  }
+  if (this.isNull()) {
+    type = 'Null';
   }
   return type;
 };
@@ -74,66 +73,81 @@ Record.prototype.type = function () {
 /**
  * Clone a record
  */
-Record.prototype.clone = function (opt) {
-  var contents;
+Record.prototype.clone = function (opts) {
   if (this.isBuffer()) {
-    if(opt && opt.contents) {
-      contents = new Buffer(contents.length);
-      this.contents.copy(contents);
-    } else {
-      contents = this.contents;
-    }
-  } else if (this.isStream()) {
-    this.contents = this.contents.pipe(new Stream.PassThrough());
-    contents = this.contents.pipe(new Stream.PassThrough());
+    return this.cloneBuffer(opts);
   }
-
-  return new Record({
-    path: this.path,
-    encoding: this.encoding,
-    contents: contents
-  });
+  if (this.isStream()) {
+    return this.cloneStream();
+  }
 };
 
 /**
- * Call `toString()` on `record.contents`.
+ * Clone `record.contents` if it's a buffer
  */
-Record.prototype.toString = function (enc) {
-  return utils.toString(this.contents, enc);
+Record.prototype.cloneBuffer = function (opts) {
+  var contents = opts && opts.contents
+    ? utils.cloneBuffer(this.contents)
+    : this.contents;
+  return new Record({contents: contents});
+};
+
+/**
+ * Clone `record.contents` if it's a stream
+ */
+Record.prototype.cloneStream = function () {
+  var contents = this.contents.pipe(new Stream.PassThrough());
+  this.contents = this.contents.pipe(new Stream.PassThrough());
+  return new Record({contents: contents});
 };
 
 /**
  * Pipe or write `record.contents` into the stream, or nothing if null.
  */
-Record.prototype.pipe = function (stream, opt) {
-  opt = opt || {};
-  if (typeof opt.end === 'undefined') { opt.end = true; }
-  if (this.isStream()) { return this.contents.pipe(stream, opt); }
+Record.prototype.pipe = function (stream, opts) {
+  opts = opts || {};
+  if (typeof opts.end === 'undefined') {
+    opts.end = true;
+  }
+  if (this.isStream()) {
+    return this.contents.pipe(stream, opts);
+  }
   if (this.isBuffer()) {
-    if (opt.end) {
+    if (opts.end) {
       stream.end(this.contents);
     } else {
       stream.write(this.contents);
     }
     return stream;
   }
-  if (this.isNull()) {
-    if (opt.end) { stream.end(); }
-    return stream;
+  if (opts.end) stream.end();
+  return stream;
+};
+
+/**
+ * Inspect a record
+ */
+Record.prototype.inspect = function() {
+  var result = '';
+  if (this.isBuffer()) {
+    result += this.contents.inspect() + ' ';
   }
+  if (this.isStream()) {
+    result + this.inspect(this.contents) + ' ';
+  }
+  return '<Record: ' + result + '>';
 };
 
-Record.prototype.inspect = function () {
-  return '<Record::' + this.type() + (this.path ? ' path="' + this.path + '"' : '') + '>';
-};
-
+/**
+ * Getter/setter for `record.contents`
+ */
 Object.defineProperty(Record.prototype, 'contents', {
   get: function () {
     return this._contents;
   },
   set: function (val) {
     if (!utils.isValid(val)) {
-      throw new Error('Contents can only be a Buffer, Stream, or null.');
+      throw new TypeError('Record expects contents to be a Buffer, Stream, or null.');
     }
     this._contents = val;
   }

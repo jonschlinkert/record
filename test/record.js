@@ -13,7 +13,7 @@ describe('Record', function () {
 
     it('should throw on invalid content type', function (done) {
       (function () {
-        new Record({contents:true});
+        new Record({contents: []});
       }).should.throw(new Error('Contents can only be a Buffer, Stream, or null.'));
       done();
     });
