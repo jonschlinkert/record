@@ -8,8 +8,6 @@
 var Record = require('record');
 
 var record = new Record({
-  path: 'path/to/record',
-  encoding: 'utf8',
   contents: 'i will be turned into a buffer'
 });
 ```

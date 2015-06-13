@@ -135,7 +135,7 @@ Record.prototype.inspect = function() {
   if (this.isStream()) {
     result + this.inspect(this.contents) + ' ';
   }
-  return '<Record: ' + result + '>';
+  return '<Record:' + this.type() + (this.path ? ('path=' + this.path) : '') + '>';
 };
 
 /**
